@@ -7,6 +7,10 @@ my end goal is to have spotify, soundcloud and/or bandcamp integration, and the 
 
 todo list:
 
+-skip button
+
+-stop button (and clear/quit search?)
+
 -platform dropdown button
 
 -visible timer
