@@ -17,5 +17,7 @@ todo list:
 
 -possible mp4 framework
 
+-repackage as .exe
+
 -eventual spotify integration
 
