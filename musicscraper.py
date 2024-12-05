@@ -1,10 +1,10 @@
 import vlc
-import pafy
 import tkinter as tk  # noqa: F401
 import customtkinter
 from youtubesearch import search_youtube
 import os
-import yt_dlp as ydl  # noqa: F401
+import yt_dlp as ydl #primary media player tool
+import pafy #this is the fallback for non youtube URLs (hopefully)
 import time  # noqa: F401
 
 #test
@@ -262,7 +262,7 @@ class MediaPlayer(): #to focus on streaming of content
     def pause_media(self):
         if self.player.is_playing():
             self.player.pause()
-    def skip_media(self):
+    def skip_media(self): #nonfunctional at the moment
         if self.player.is_playing():
             self.player.skip()
     def rewind_media(self):
@@ -286,7 +286,7 @@ class NowPlaying(UITemplate):
         self.now_playing_label = customtkinter.CTkLabel(
             master=self.root,
             text=("Now Playing: None")
-        ) #configure this to show current track
+        ) #shows current track
         self.now_playing_label.pack(pady=10)
     def update_now_playing(self, title):
         self.now_playing_label.configure(text=f"Now Playing: {title}")
