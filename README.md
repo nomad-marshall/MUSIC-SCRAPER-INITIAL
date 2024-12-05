@@ -11,6 +11,8 @@ todo list:
 
 -stop button (and clear/quit search?)
 
+-ability to play youtube mixes/playlists
+
 -platform dropdown button
 
 -visible timer
