@@ -17,16 +17,16 @@ and it should work
 
 
 
-current features: can search for youtube videos by title or URL, play, pause, rewind, fast forward the media
+CURRENT FEATURES: can search for youtube videos by title or URL, play, pause, rewind, fast forward the media
 
 
-coming soon: playlist support, other platforms, more functionality
+COMING SOON: playlist support, other platforms, more functionality
 
 
 my end goal is to have spotify, soundcloud and/or bandcamp integration, and the ability to play mixes/playlists
 
 
-todo list:
+TODO LIST:
 
 -skip button
 
