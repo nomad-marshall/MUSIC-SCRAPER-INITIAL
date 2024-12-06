@@ -1,6 +1,11 @@
-this is my music scraper
+this is my music scraper app built with python, custom tkinter and youtube dlp
 
-right now it has very basic funcionality and only works with youtube
+
+current features: can search for youtube videos by title or URL, play, pause, rewind, fast forward the media
+
+
+coming soon: playlist support, other platforms, more functionality
+
 
 my end goal is to have spotify, soundcloud and/or bandcamp integration, and the ability to play mixes/playlists
 
