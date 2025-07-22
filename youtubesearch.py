@@ -36,16 +36,14 @@ search_results = search_youtube("Your Search Query")
 
 if search_results:
     for item in search_results:
-        # Debugging: print the full response structure to verify how the 'videoId' is structured
-        print(item)  # Debugging: Print the full response item to check structure
         
-        # Access the correct 'videoId' based on the response structure
-        video_id = item["id"].get("videoId", None)  # Safely get 'videoId' if it exists
+        video_id = item["id"].get("videoId", None)
         if video_id:
             print(f"Title: {item['snippet']['title']}, URL: https://www.youtube.com/watch?v={video_id}")
         else:
             print(f"Video ID not found for item: {item['snippet']['title']}")
 else:
     print("No results found")
+
 
 

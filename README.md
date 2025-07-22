@@ -11,6 +11,8 @@ todo list:
 
 -stop button (and clear/quit search?)
 
+-enter key working for search
+
 -ability to play youtube mixes/playlists
 
 -platform dropdown button

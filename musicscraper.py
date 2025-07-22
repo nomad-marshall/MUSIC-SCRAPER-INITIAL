@@ -1,17 +1,17 @@
 import vlc
+import pafy
 import tkinter as tk  # noqa: F401
 import customtkinter
 from youtubesearch import search_youtube
 import os
-import yt_dlp as ydl #primary media player tool
-import pafy #this is the fallback for non youtube URLs (hopefully)
+import yt_dlp as ydl  # noqa: F401
 import time  # noqa: F401
 
-#test
+
 class BaseMusicApp:
     def __init__(self, root):
         self.root = root
-        self.root.geometry("1024x700")
+        self.root.geometry("1200x800")
         self.root.title("Music Scraper")        
         customtkinter.set_appearance_mode("dark")
         customtkinter.set_default_color_theme("green")
@@ -65,10 +65,11 @@ class SearchBar(UITemplate):
             print("No search query entered.")
 
 class SearchResults(UITemplate):
-    def __init__(self, root, media_player):
+    def __init__(self, root, media_player, now_playing):
         super().__init__(root)
         self.selected_media = None
         self.media_player = media_player
+        self.now_playing = now_playing
         self.create_results_area()
         
     def create_results_area(self):
@@ -87,7 +88,7 @@ class SearchResults(UITemplate):
                 result_button = customtkinter.CTkButton(
                     master=self.results_frame,
                     text=title,
-                    command=lambda url=video_url: self.select_media(url)
+                    command=lambda url=video_url, title=title: self.select_media(url, title)
                 )
                 result_button.pack(pady=5)
         else:
@@ -96,11 +97,14 @@ class SearchResults(UITemplate):
                 text="No results found.",
             )
             no_results_label.pack(pady=10)
-    def select_media(self, media_url):
+    def select_media(self, media_url, title):
         print(f"Playing: {media_url}")
         self.selected_media = media_url
         self.media_player.set_selected_media(media_url)
+        self.now_playing.update_now_playing(title)
 
+
+###
 class DropdownOption(UITemplate): #this isnt working atm, need to figure out later
     def __init__(self, root):
         super().__init__(root)
@@ -122,7 +126,7 @@ class DropdownOption(UITemplate): #this isnt working atm, need to figure out lat
     #considering remaking this part to align with grid
     #or shoving it in media buttons
     #much to think about
-
+###
 class VolumeSlider(UITemplate):
     def __init__(self, root, media_player):
         super().__init__(root)
@@ -130,17 +134,25 @@ class VolumeSlider(UITemplate):
         self.create_slider()
 
     def create_slider(self):
+        # Create a container frame for the slider
+        container = customtkinter.CTkFrame(master=self.root)
+        container.pack(padx=(30, 10), pady=20, side="left")  # padding to move right and down
+
         slider = customtkinter.CTkSlider(
-            master=self.root,
+            master=container,
             from_=0,
             to=100,
             command=self.slider_event,
-            orientation="vertical",)
-        slider.pack(padx=0.9, pady=0.5, side="right")
-        
+            orientation="vertical",
+            height=300,  # taller slider
+            width=30     # thicker slider
+        )
+        slider.pack()  # no padding needed inside container
+
     def slider_event(self, value):
         print("Slider value:", value)
         self.media_player.set_volume(int(value)) #should set volume of app
+
         
 class MediaButtons(UITemplate): #to control playing of media
     def __init__(self, root, media_player):
@@ -190,17 +202,16 @@ class MediaButtons(UITemplate): #to control playing of media
         print("Skip button clicked!")
         self.media_player.skip_media()
     #def create_option_menu(self):
-    #    print("Platform selected:")
-    #    pass
+        print("Platform selected:")
+        pass
 
 class MediaPlayer(): #to focus on streaming of content
-    def __init__(self, root, now_playing):
+    def __init__(self, root):
         self.root=root
         vlc_lib_path=r"C:\Program Files\VideoLAN\VLC"
         os.environ["VLC_PLUGIN_PATH"] = vlc_lib_path
         self.instance = vlc.Instance("--no-video")
         self.player = self.instance.media_player_new()
-        self.now_playing = now_playing
         self.current_media = None
         self.selected_media = None
         self.is_playing = False #tracks if its playing
@@ -222,13 +233,11 @@ class MediaPlayer(): #to focus on streaming of content
                 if "youtube.com" in self.selected_media:
                     ydl_opts = {
                         'format': 'bestaudio/best', 
-                        'quiet': True,  #this stops unnecessary terminal output
+                        'quiet': True,  # this stops terminal output
                     }
                     with ydl.YoutubeDL(ydl_opts) as ydl_instance:
                         info_dict = ydl_instance.extract_info(self.selected_media, download=False)
-                        audio_url = info_dict["url"]
-                        title = info_dict.get("title", "unknown title")
-                        self.now_playing.update_now_playing(title)
+                        audio_url = info_dict['url']  
                     
                     media = self.instance.media_new(audio_url) #heres vlc again doing its thing
                     self.player.set_media(media)
@@ -236,10 +245,8 @@ class MediaPlayer(): #to focus on streaming of content
                     print(f"Playing {media_type} from YouTube: {self.selected_media}")
                     self.is_playing = True
                 else:
-                    #fall back to pafy 
+                    #for non-YouTube media, fall back to the pafy
                     video = pafy.new(self.selected_media)
-                    title = video.title
-                    self.now_playing.update_now_playing(title) #updates now playing title
                     best = video.getbest()
                     media = vlc.MediaPlayer(best.url)
                     media.play()
@@ -262,7 +269,7 @@ class MediaPlayer(): #to focus on streaming of content
     def pause_media(self):
         if self.player.is_playing():
             self.player.pause()
-    def skip_media(self): #nonfunctional at the moment
+    def skip_media(self):
         if self.player.is_playing():
             self.player.skip()
     def rewind_media(self):
@@ -279,26 +286,91 @@ class MediaPlayer(): #to focus on streaming of content
         pass
         
 class NowPlaying(UITemplate):
-    def __init__(self, root):
+    def __init__(self, root, media_player):
         super().__init__(root)
+        self.media_player = media_player
+        self.track_name = "None"
+        self.track_duration = 0
+        self.now_playing_label = None
+        self.progress_bar = None
+        self.time_label = None
         self.create_now_playing()
+        self.update_progress_loop()
+
     def create_now_playing(self):
         self.now_playing_label = customtkinter.CTkLabel(
             master=self.root,
-            text=("Now Playing: None")
-        ) #shows current track
-        self.now_playing_label.pack(pady=10)
-    def update_now_playing(self, title):
-        self.now_playing_label.configure(text=f"Now Playing: {title}")
+            text="Now Playing: None",
+            font=customtkinter.CTkFont(size=16, weight="bold")
+        )
+        self.now_playing_label.pack(pady=5)
+
+        #progress bar that can be clicked to seek
+        self.progress_bar = customtkinter.CTkProgressBar(
+            master=self.root,
+            orientation="horizontal",
+            width=400,
+            height=15
+        )
+        self.progress_bar.pack(pady=5)
+        self.progress_bar.set(0)
+
+        #bind left click to seek position
+        self.progress_bar.bind("<Button-1>", self.seek_media)
+
+        self.time_label = customtkinter.CTkLabel(
+            master=self.root,
+            text="00:00 / 00:00"
+        )
+        self.time_label.pack()
+
+    def update_now_playing(self, track_name):
+        self.track_name = track_name
+        self.now_playing_label.configure(text=f"Now Playing: {track_name}")
+
+    def update_progress_loop(self):
+        if self.media_player.player.is_playing():
+            current_time_ms = self.media_player.player.get_time()
+            total_time_ms = self.media_player.player.get_length()
+
+            if current_time_ms >= 0 and total_time_ms > 0:
+                current_sec = int(current_time_ms / 1000)
+                total_sec = int(total_time_ms / 1000)
+                self.track_duration = total_sec
+
+                progress_ratio = current_sec / total_sec
+                self.progress_bar.set(progress_ratio)
+
+                current_time_str = f"{current_sec // 60:02}:{current_sec % 60:02}"
+                total_time_str = f"{total_sec // 60:02}:{total_sec % 60:02}"
+                self.time_label.configure(text=f"{current_time_str} / {total_time_str}")
+        self.root.after(500, self.update_progress_loop)
+
+    def seek_media(self, event):
+        if self.track_duration == 0:
+            return
+
+        #calculate relative click position (0.0 to 1.0)
+        widget_width = self.progress_bar.winfo_width()
+        click_x = event.x
+        clicked_ratio = min(max(click_x / widget_width, 0), 1)
+
+        #convert to media time in milliseconds
+        new_time_ms = int(clicked_ratio * self.track_duration * 1000)
+        self.media_player.player.set_time(new_time_ms)
+
+
+
         
       
 root = customtkinter.CTk()
-now_playing = NowPlaying(root)
-media_player = MediaPlayer(root, now_playing)
+
+media_player = MediaPlayer(root)
 media_buttons = MediaButtons(root, media_player)
 volume_slider = VolumeSlider(root, media_player)
 #dropdown = DropdownOption(root) #new
-search_results = SearchResults(root, media_player)
+now_playing = NowPlaying(root, media_player)
+search_results = SearchResults(root, media_player, now_playing)
 search_bar = SearchBar(root, search_results)
 
 root.mainloop()
