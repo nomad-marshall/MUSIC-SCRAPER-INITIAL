@@ -1,11 +1,32 @@
-this is my music scraper
+this is my music scraper app built with python, custom tkinter and youtube dlp
 
-right now it has very basic funcionality and only works with youtube
+INSTRUCTIONS:
+
+
+before you download, create a credentialed YouTube Data API v3 key from the google cloud console
+
+
+copy that key into a text file called API_KEY, format it so it looks like: API_KEY=your-api-key-here (without dashes, just paste the credential)
+
+
+
+move that file into your local copy directory, rename its extension from .txt to .env
+
+
+and it should work
+
+
+
+CURRENT FEATURES: can search for youtube videos by title or URL, play, pause, rewind, fast forward the media
+
+
+COMING SOON: playlist support, other platforms, more functionality
+
 
 my end goal is to have spotify, soundcloud and/or bandcamp integration, and the ability to play mixes/playlists
 
 
-todo list:
+TODO LIST:
 
 -skip button
 
